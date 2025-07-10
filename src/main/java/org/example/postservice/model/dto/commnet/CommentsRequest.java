@@ -10,5 +10,4 @@ public class CommentsRequest {
     private UUID user_id;
     private String content;
     private Long parentId;
-
 }

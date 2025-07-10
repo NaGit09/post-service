@@ -21,7 +21,7 @@ import java.util.UUID;
         @Index(name = "user_id_idx", columnList = "user_id"),
         @Index(name = "parent_comment_id_idx", columnList = "parent_comment_id")
 })
-public class Comment {
+public class Comments {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +35,9 @@ public class Comment {
 
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    @Column (columnDefinition = "TEXT")
+    private String media ;
 
     @Column(name = "parent_comment_id")
     private Long parentCommentId;

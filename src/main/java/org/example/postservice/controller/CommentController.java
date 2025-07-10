@@ -1,5 +1,6 @@
 package org.example.postservice.controller;
 
+import org.example.postservice.model.dto.commnet.CommentEditRequest;
 import org.example.postservice.model.dto.commnet.CommentsRequest;
 import org.example.postservice.service.CommentsServiceImp;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,18 +15,36 @@ public class CommentController {
     @Autowired
     private CommentsServiceImp commentsService;
 
-    @PostMapping("/sent-comment")
-    public ResponseEntity<?> sentComments(@RequestBody CommentsRequest comments) {
-        return commentsService.sentComments(comments);
+    @PostMapping("/create-comment")
+    public ResponseEntity<?> getComments(CommentsRequest commentsRequest) {
+        return commentsService.CreateComment(commentsRequest);
     }
 
-    @GetMapping("/getCommentUser")
-    public ResponseEntity<?> getCommentUser(@RequestParam("userId") UUID userId) {
-        return commentsService.getCommentsUsers(userId);
+    @DeleteMapping("/delete-comment/{id}")
+    public ResponseEntity<?> DeleteComment(@PathVariable Long id) {
+        return commentsService.DeleteComment(id);
+
     }
 
-    @GetMapping("/getCommentsPost/{postId}")
-    public ResponseEntity<?> getCommentsPost( @PathVariable Integer postId) {
-        return commentsService.getCommentsPost(postId);
+    @PutMapping("/update-comment")
+    public ResponseEntity<?> UpdateComment(CommentEditRequest commentEditRequest) {
+        return ResponseEntity.ok(commentsService.UpdateComment(commentEditRequest));
+    }
+
+    @GetMapping("/get-all-comment/{postId}&{page}&{size}")
+    public ResponseEntity<?> getAllComments(@PathVariable Long postId,
+                                            @PathVariable Integer page,
+                                            @PathVariable Integer size) {
+        return commentsService.getPagedCommentTrees(postId, page, size);
+    }
+    @GetMapping("/get-replis-coment/{postId}&{page}&{size}")
+    public ResponseEntity<?> getAllTopComments(@PathVariable Long postId,
+                                            @PathVariable Integer page,
+                                            @PathVariable Integer size) {
+        return commentsService.getTopLevelComments(postId, page, size);
+    }
+    @GetMapping("/get-total-comment/{postId}")
+    public ResponseEntity<?> getTotalComment(@PathVariable Long postId) {
+        return commentsService.TotalCommentsInPost(postId);
     }
 }
