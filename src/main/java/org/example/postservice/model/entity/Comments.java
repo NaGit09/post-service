@@ -39,7 +39,7 @@ public class Comments {
     @Column (columnDefinition = "TEXT")
     private String media ;
 
-    @Column(name = "parent_comment_id")
+    @Column(name = "parent_comment_id" )
     private Long parentCommentId;
 
     @Column(name = "created_at", updatable = false)

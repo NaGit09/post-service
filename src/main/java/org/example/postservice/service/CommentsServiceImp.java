@@ -31,17 +31,22 @@ public class CommentsServiceImp implements ICommentsService {
 
 
     @Override
-    public ResponseEntity<?> CreateComment(CommentsRequest commentsRequest) {
+    public ResponseEntity<?> CreateComment(  CommentsRequest commentsRequest) {
         Comments comments = GenerateComments.generateComments(commentsRequest);
         commentsRepository.save(comments);
+
         return GenerateResponse.generateSuccessResponse(
-                200, "comment created !", true);
+                200, "comment created !", comments.getId());
     }
 
     @Override
     public ResponseEntity<?> DeleteComment(Long commentId) {
         if (commentId == null) {
             return GenerateResponse.generateErrorResponse(402, "comment id is null !");
+        }
+        Comments comments = commentsRepository.findById(commentId).orElse(null);
+        if (comments == null) {
+            return GenerateResponse.generateErrorResponse(402, "comment  is not existed !");
         }
         commentsRepository.deleteById(commentId);
         return GenerateResponse.generateSuccessResponse
@@ -113,6 +118,7 @@ public class CommentsServiceImp implements ICommentsService {
             return GenerateResponse.generateErrorResponse(402, "post id is null !");
         }
         Integer totalComments = commentsRepository.countByPostId(postId);
+        if (totalComments == 0) return GenerateResponse.generateErrorResponse(404, "comment not found !");
         return GenerateResponse.generateSuccessResponse(
                 200, "get totalComments successfully !", totalComments
         );

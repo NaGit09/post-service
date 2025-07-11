@@ -8,16 +8,19 @@ import org.example.postservice.model.entity.Comments;
 
 public class GenerateComments {
     public static Comments generateComments(CommentsRequest comments) {
-        Comments comment = new Comments();
-        comment.setPostId(comments.getPost_id());
-        comment.setUserId(comments.getUser_id());
-        comment.setContent(comments.getContent());
-        comment.setParentCommentId(comments.getParentId());
-        return comment;
+
+        Long commentParentId = (comments.getParentId() == null) ? null : comments.getParentId();
+
+        return Comments.builder()
+                .postId(comments.getPost_id())
+                .userId(comments.getUser_id())
+                .content(comments.getContent())
+                .parentCommentId(commentParentId).build();
     }
-        public static Comments updateComment(Comments comments , CommentEditRequest editComment) {
-            comments.setContent(editComment.getContent());
-            comments.setMedia(editComment.getMedia());
-            return comments;
-        }
+
+    public static Comments updateComment(Comments comments, CommentEditRequest editComment) {
+        comments.setContent(editComment.getContent());
+        comments.setMedia(editComment.getMedia());
+        return comments;
+    }
 }
