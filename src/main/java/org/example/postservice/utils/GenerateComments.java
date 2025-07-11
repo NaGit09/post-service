@@ -1,6 +1,7 @@
 package org.example.postservice.utils;
 
 
+
 import org.example.postservice.model.dto.commnet.CommentEditRequest;
 import org.example.postservice.model.dto.commnet.CommentsRequest;
 import org.example.postservice.model.entity.Comments;
@@ -22,5 +23,6 @@ public class GenerateComments {
         comments.setContent(editComment.getContent());
         comments.setMedia(editComment.getMedia());
         return comments;
+
     }
 }
