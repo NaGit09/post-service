@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -16,10 +15,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CommentDTO {
     private Long id;
-    private Long postId;
-    private UUID userId;
     private String content;
-    private String media;
+    private String mediaUrl;
+    private String mediaType;
     private LocalDateTime createdAt;
+    private Boolean hasMoreReplies;
     private List<CommentDTO> replies = new ArrayList<>();
 }

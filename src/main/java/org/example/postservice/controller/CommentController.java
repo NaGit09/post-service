@@ -37,11 +37,11 @@ public class CommentController {
                                             @PathVariable Integer size) {
         return commentsService.getTopLevelComments(postId, page, size);
     }
-    @GetMapping("/get-replies-comment/{postId}&{page}&{size}")
-    public ResponseEntity<?> getAllTopComments(@PathVariable Long postId,
+    @GetMapping("/get-replies-comment/{parentId}&{page}&{size}")
+    public ResponseEntity<?> getAllRepComments(@PathVariable Long parentId,
                                             @PathVariable Integer page,
                                             @PathVariable Integer size) {
-        return commentsService.getPagedCommentTrees(postId, page, size);
+        return commentsService.getPagedCommentTrees(parentId, page, size);
     }
     @GetMapping("/get-total-comment/{postId}")
     public ResponseEntity<?> getTotalComment(@PathVariable Long postId) {

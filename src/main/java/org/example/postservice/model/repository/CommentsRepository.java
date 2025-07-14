@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
@@ -19,7 +20,9 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     // get top comment
     Page<Comments> findByPostIdAndParentCommentIdIsNull(Long postId, Pageable pageable);
 
-    List<Comments> findByParentCommentId(Long parentCommentId);
+    Page<Comments> findByParentCommentId(Long parentCommentId , Pageable pageable);
 
     void deleteById(Long id);
+
+    Page<Comments> findById(Long parentCommentId, Pageable pageable);
 }

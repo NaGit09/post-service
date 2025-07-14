@@ -27,6 +27,9 @@ public class Comments {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "media_id")
+    private Long mediaId;
+
     @Column(name = "post_id", nullable = false)
     private Long postId;
 
@@ -36,10 +39,13 @@ public class Comments {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column (columnDefinition = "TEXT")
-    private String media ;
+    @Column(name = "media_url")
+    private String mediaUrl;
 
-    @Column(name = "parent_comment_id" )
+    @Column(name = "media_type")
+    private String mediaType;
+
+    @Column(name = "parent_comment_id")
     private Long parentCommentId;
 
     @Column(name = "created_at", updatable = false)

@@ -31,7 +31,7 @@ public class CommentsServiceImp implements ICommentsService {
 
 
     @Override
-    public ResponseEntity<?> CreateComment(  CommentsRequest commentsRequest) {
+    public ResponseEntity<?> CreateComment(CommentsRequest commentsRequest) {
         Comments comments = GenerateComments.generateComments(commentsRequest);
         commentsRepository.save(comments);
 
@@ -66,38 +66,46 @@ public class CommentsServiceImp implements ICommentsService {
     }
 
     @Override
-    public ResponseEntity<?> getPagedCommentTrees(Long postId, int page, int size) {
+    public ResponseEntity<?> getPagedCommentTrees(Long parentCommentId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Comments> topLevelComments = commentsRepository.findByPostIdAndParentCommentIdIsNull(postId, pageable);
+        // Lấy các comment cấp cao nhất (parent comment)
+        Page<Comments> topLevelComments = commentsRepository.findById(parentCommentId, pageable);
 
         List<CommentDTO> treeDTOs = topLevelComments.getContent().stream()
-                .map(this::buildTreeRecursive)
+                .map(reply -> buildTreeRecursive(reply, page, size))
                 .collect(Collectors.toList());
 
         return GenerateResponse.generateSuccessResponse(
-                200, "Get comment successfully !",
+                200, "Get comment successfully!",
                 new PageImpl<>(treeDTOs, pageable, topLevelComments.getTotalElements()));
+
     }
 
     @Override
-    public CommentDTO buildTreeRecursive(Comments comment) {
-        CommentDTO dto = CommentDTO.builder()
-                .id(comment.getId())
-                .postId(comment.getPostId())
-                .userId(comment.getUserId())
-                .content(comment.getContent())
-                .media(comment.getMedia())
-                .createdAt(comment.getCreatedAt())
-                .build();
+    public CommentDTO buildTreeRecursive
+            (Comments comment, int replyPage, int replySize) {
 
-        List<Comments> replies = commentsRepository.findByParentCommentId(comment.getId());
-        List<CommentDTO> replyDtos = replies.stream()
-                .map(this::buildTreeRecursive)
+        CommentDTO dto = GenerateComments.generateCommentsDto(comment);
+
+        // Phân trang comment con (replies)
+        Pageable replyPageable = PageRequest.of
+                (replyPage, replySize, Sort.by("createdAt").ascending());
+
+        Page<Comments> repliesPage = commentsRepository.
+                findByParentCommentId(comment.getId(), replyPageable);
+
+        // Lấy các comment con đã phân trang
+        List<CommentDTO> replyDtos = repliesPage.getContent().stream()
+                .map(reply -> buildTreeRecursive(reply, replyPage, replySize))
                 .collect(Collectors.toList());
 
         dto.setReplies(replyDtos);
+
+        dto.setHasMoreReplies(repliesPage.hasNext());
+
         return dto;
     }
+
 
     @Override
     public ResponseEntity<?> getTopLevelComments(Long postId, int page, int size) {
@@ -105,11 +113,16 @@ public class CommentsServiceImp implements ICommentsService {
             return GenerateResponse.generateErrorResponse(402, "post id is null !");
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Comments> topLevelComments = commentsRepository.findByPostIdAndParentCommentIdIsNull(postId, pageable);
+
+        Page<Comments> topLevelComments = commentsRepository.
+                findByPostIdAndParentCommentIdIsNull(postId, pageable);
+
         return GenerateResponse.generateSuccessResponse(
                 200, "Get comment successfully !",
-                new PageImpl<>(topLevelComments.getContent(), pageable, topLevelComments.getTotalElements())
+                new PageImpl<>(topLevelComments.getContent(),
+                        pageable, topLevelComments.getTotalElements())
         );
+
     }
 
     @Override
@@ -118,7 +131,9 @@ public class CommentsServiceImp implements ICommentsService {
             return GenerateResponse.generateErrorResponse(402, "post id is null !");
         }
         Integer totalComments = commentsRepository.countByPostId(postId);
-        if (totalComments == 0) return GenerateResponse.generateErrorResponse(404, "comment not found !");
+        if (totalComments == 0) return GenerateResponse.generateErrorResponse
+                (404, "comment not found !");
+
         return GenerateResponse.generateSuccessResponse(
                 200, "get totalComments successfully !", totalComments
         );
