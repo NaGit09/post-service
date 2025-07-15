@@ -25,4 +25,6 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     void deleteById(Long id);
 
     Page<Comments> findById(Long parentCommentId, Pageable pageable);
+
+    Integer countByParentCommentId(Long parentCommentId);
 }

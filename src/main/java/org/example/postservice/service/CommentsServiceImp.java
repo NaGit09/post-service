@@ -2,6 +2,7 @@ package org.example.postservice.service;
 
 import org.example.postservice.model.dto.commnet.CommentDTO;
 import org.example.postservice.model.dto.commnet.CommentEditRequest;
+import org.example.postservice.model.dto.commnet.CommentRoot;
 import org.example.postservice.model.dto.commnet.CommentsRequest;
 import org.example.postservice.model.entity.Comments;
 import org.example.postservice.model.repository.CommentsRepository;
@@ -66,63 +67,63 @@ public class CommentsServiceImp implements ICommentsService {
     }
 
     @Override
-    public ResponseEntity<?> getPagedCommentTrees(Long parentCommentId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        // Lấy các comment cấp cao nhất (parent comment)
-        Page<Comments> topLevelComments = commentsRepository.findById(parentCommentId, pageable);
-
-        List<CommentDTO> treeDTOs = topLevelComments.getContent().stream()
-                .map(reply -> buildTreeRecursive(reply, page, size))
-                .collect(Collectors.toList());
-
-        return GenerateResponse.generateSuccessResponse(
-                200, "Get comment successfully!",
-                new PageImpl<>(treeDTOs, pageable, topLevelComments.getTotalElements()));
-
-    }
-
-    @Override
-    public CommentDTO buildTreeRecursive
-            (Comments comment, int replyPage, int replySize) {
-
-        CommentDTO dto = GenerateComments.generateCommentsDto(comment);
-
-        // Phân trang comment con (replies)
-        Pageable replyPageable = PageRequest.of
-                (replyPage, replySize, Sort.by("createdAt").ascending());
-
-        Page<Comments> repliesPage = commentsRepository.
-                findByParentCommentId(comment.getId(), replyPageable);
-
-        // Lấy các comment con đã phân trang
-        List<CommentDTO> replyDtos = repliesPage.getContent().stream()
-                .map(reply -> buildTreeRecursive(reply, replyPage, replySize))
-                .collect(Collectors.toList());
-
-        dto.setReplies(replyDtos);
-
-        dto.setHasMoreReplies(repliesPage.hasNext());
-
-        return dto;
-    }
-
-
-    @Override
     public ResponseEntity<?> getTopLevelComments(Long postId, int page, int size) {
+        // Kiểm tra nếu postId là null
         if (postId == null) {
-            return GenerateResponse.generateErrorResponse(402, "post id is null !");
+            return GenerateResponse.generateErrorResponse(402, "Post ID is null!");
         }
+
+        // Phân trang cho các comment gốc
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
+        // Truy vấn các comment gốc của bài viết (comment có parentCommentId = null)
         Page<Comments> topLevelComments = commentsRepository.
                 findByPostIdAndParentCommentIdIsNull(postId, pageable);
 
-        return GenerateResponse.generateSuccessResponse(
-                200, "Get comment successfully !",
-                new PageImpl<>(topLevelComments.getContent(),
-                        pageable, topLevelComments.getTotalElements())
-        );
+        // Chuyển đổi các comment gốc thành DTO
+        List<CommentRoot> commentDTOs = topLevelComments.getContent().stream()
+                .map(GenerateComments::generateCommentRoot)
+                .collect(Collectors.toList());
 
+        // Trả về kết quả phân trang
+        return GenerateResponse.generateSuccessResponse(
+                200, "Get top-level comments successfully!",
+                new PageImpl<>(commentDTOs, pageable, topLevelComments.getTotalElements())
+        );
+    }
+
+
+    @Override
+    public ResponseEntity<?> getRepliesComments(Long commentId, int page, int size) {
+        // Lấy comment gốc từ repository
+        Comments comments = commentsRepository.findById(commentId).orElse(null);
+
+        // Kiểm tra nếu comment không tồn tại
+        if (comments == null) {
+            return GenerateResponse.generateErrorResponse(404, "Comment not found!");
+        }
+
+        // Phân trang
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Kiểm tra nếu comment là comment gốc hoặc comment con
+        Long parentCommentId = comments.getParentCommentId() == null
+                ? comments.getId() : comments.getParentCommentId();
+
+        // Tìm các comment con của comment gốc hoặc comment cha
+        Page<Comments> repliesComments = commentsRepository.
+                findByParentCommentId(parentCommentId, pageable);
+
+        // Chuyển đổi thành DTO
+        List<CommentDTO> result = repliesComments.stream()
+                .map(GenerateComments::generateCommentsDto)
+                .collect(Collectors.toList());
+
+        // Trả về kết quả
+        return GenerateResponse.generateSuccessResponse(
+                200, "Get replies comments successfully!",
+                new PageImpl<>(result, pageable, repliesComments.getTotalElements())
+        );
     }
 
     @Override
@@ -136,6 +137,29 @@ public class CommentsServiceImp implements ICommentsService {
 
         return GenerateResponse.generateSuccessResponse(
                 200, "get totalComments successfully !", totalComments
+        );
+    }
+
+    @Override
+    public ResponseEntity<?> TotalCommentReplies(Long commentId) {
+        if (commentId == null) {
+            return GenerateResponse.generateErrorResponse
+                    (402, "comment id is null !");
+        }
+
+        Comments comments = commentsRepository.findById(commentId).orElse(null);
+
+        if (comments == null) {
+            return GenerateResponse.generateErrorResponse
+                    (404, "comment not found !");
+        }
+        Long parentComment = comments.getParentCommentId() == null
+                ? comments.getId() : comments.getParentCommentId();
+
+        Integer totalReplies = commentsRepository.countByParentCommentId(parentComment);
+
+        return GenerateResponse.generateSuccessResponse(
+                200, "get totalReplies successfully !", totalReplies
         );
     }
 }

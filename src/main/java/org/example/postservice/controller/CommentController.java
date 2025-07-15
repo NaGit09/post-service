@@ -16,7 +16,8 @@ public class CommentController {
     private CommentsServiceImp commentsService;
 
     @PostMapping("/create-comment")
-    public ResponseEntity<?> getComments(@RequestBody  CommentsRequest commentsRequest) {
+    public ResponseEntity<?> getComments
+            (@RequestBody  CommentsRequest commentsRequest) {
         return commentsService.CreateComment(commentsRequest);
     }
 
@@ -27,7 +28,8 @@ public class CommentController {
     }
 
     @PutMapping("/update-comment")
-    public ResponseEntity<?> UpdateComment(@RequestBody  CommentEditRequest commentEditRequest) {
+    public ResponseEntity<?> UpdateComment
+            (@RequestBody  CommentEditRequest commentEditRequest) {
         return ResponseEntity.ok(commentsService.UpdateComment(commentEditRequest));
     }
 
@@ -41,10 +43,17 @@ public class CommentController {
     public ResponseEntity<?> getAllRepComments(@PathVariable Long parentId,
                                             @PathVariable Integer page,
                                             @PathVariable Integer size) {
-        return commentsService.getPagedCommentTrees(parentId, page, size);
+        return commentsService.getRepliesComments(parentId, page, size);
     }
     @GetMapping("/get-total-comment/{postId}")
     public ResponseEntity<?> getTotalComment(@PathVariable Long postId) {
         return commentsService.TotalCommentsInPost(postId);
     }
+
+    @GetMapping("/get-total-replies/{parentCommentId}")
+    public ResponseEntity<?> getTotalRepliesComments
+            (@PathVariable Long parentCommentId) {
+        return commentsService.TotalCommentReplies(parentCommentId);
+    }
+
 }

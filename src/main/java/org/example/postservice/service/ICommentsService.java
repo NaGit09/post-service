@@ -17,16 +17,12 @@ public interface ICommentsService {
     ResponseEntity<?> DeleteComment(Long commentId);
 
     ResponseEntity<?> UpdateComment(CommentEditRequest commentsEditRequest);
-
-    // Return tree comment
-    ResponseEntity<?> getPagedCommentTrees(Long postId, int page, int size);
-
-    CommentDTO buildTreeRecursive(Comments comments , int repliesPage , int repliesSize);
-
     // return top comment
     ResponseEntity<?> getTopLevelComments(Long postId, int page, int size);
-
-    // return total comment in post
+    // return replies comments
+    ResponseEntity<?> getRepliesComments(Long CommentId, int page, int size);
+    // get total func
     ResponseEntity<?> TotalCommentsInPost(Long postId);
 
+    ResponseEntity<?> TotalCommentReplies(Long commentId);
 }
