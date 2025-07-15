@@ -1,5 +1,6 @@
 package org.example.postservice.service;
 
+
 import org.example.postservice.model.dto.commnet.CommentDTO;
 import org.example.postservice.model.dto.commnet.CommentEditRequest;
 import org.example.postservice.model.dto.commnet.CommentRoot;
@@ -29,6 +30,7 @@ public class CommentsServiceImp implements ICommentsService {
 
     @Autowired
     private CommentsRepository commentsRepository;
+
 
 
     @Override
@@ -138,6 +140,7 @@ public class CommentsServiceImp implements ICommentsService {
         return GenerateResponse.generateSuccessResponse(
                 200, "get totalComments successfully !", totalComments
         );
+
     }
 
     @Override

@@ -1,6 +1,5 @@
 package org.example.postservice.controller;
 
-
 import org.example.postservice.service.PostServiceImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +9,5 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     @Autowired
     public PostServiceImp postService;
-
-
 
 }

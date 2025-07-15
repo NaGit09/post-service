@@ -20,4 +20,5 @@ public class CommentDTO {
     private String mediaType;
     private LocalDateTime createdAt;
     private List<CommentDTO> replies = new ArrayList<>();
+
 }
