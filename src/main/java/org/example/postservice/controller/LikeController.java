@@ -20,7 +20,7 @@ public class LikeController {
     public ResponseEntity<?> like(@RequestBody UnlikeRequest unlikeRequest) {
         return likeServiceImp.unlike(unlikeRequest);
     }
-    @GetMapping("/totalLike/{targetId}/{targetType}")
+    @GetMapping("/total/{targetId}/{targetType}")
     ResponseEntity<?> totalLikes(@PathVariable Long targetId, @PathVariable String targetType) {
         return likeServiceImp.totalLikes(targetId, targetType);
     }

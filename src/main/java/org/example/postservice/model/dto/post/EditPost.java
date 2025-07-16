@@ -14,7 +14,6 @@ public class EditPost {
     private Boolean isComment;
     private Boolean isShare;
     private Boolean isLike;
-    private Boolean isSaved;
 
     private String mode;
 

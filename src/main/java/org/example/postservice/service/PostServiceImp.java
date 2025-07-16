@@ -2,7 +2,10 @@ package org.example.postservice.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.postservice.config.UserClient;
+import org.example.postservice.model.dto.orther.UserInforResponse;
 import org.example.postservice.model.dto.post.EditPost;
+import org.example.postservice.model.dto.post.PostDTO;
 import org.example.postservice.model.dto.post.PostImageRequest;
 import org.example.postservice.model.dto.post.PostRequest;
 
@@ -11,7 +14,9 @@ import org.example.postservice.model.entity.PostImage;
 import org.example.postservice.model.repository.PostImageRepository;
 import org.example.postservice.model.repository.PostRepository;
 
+import org.example.postservice.utils.GeneratePost;
 import org.example.postservice.utils.GenerateResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +27,12 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class PostServiceImp implements IPostService {
-
+    @Autowired
     public final PostRepository postRepository;
-
+    @Autowired
     public PostImageRepository postImageRepository;
+    @Autowired
+    public UserClient userClient;
 
     @Override
     public ResponseEntity<?> CreatePost(PostRequest postRequest) {
@@ -73,7 +80,6 @@ public class PostServiceImp implements IPostService {
                 200, "create post successfully !", postReturn.get());
     }
 
-
     @Override
     public ResponseEntity<?> UpdatePost(EditPost editPost) {
         Long postId = editPost.getPostId();
@@ -91,7 +97,7 @@ public class PostServiceImp implements IPostService {
         post.setIsLike(editPost.getIsLike());
         post.setIsShare(editPost.getIsShare());
         post.setModes(editPost.getMode());
-        post.setIsSaved(editPost.getIsSaved());
+
 
         // Cập nhật lại ảnh: xóa hết ảnh cũ
         postImageRepository.deleteAllByPost(post);
@@ -115,7 +121,6 @@ public class PostServiceImp implements IPostService {
         );
     }
 
-
     @Override
     @Transactional
     public ResponseEntity<?> DeletePost(Long postId) {
@@ -134,10 +139,24 @@ public class PostServiceImp implements IPostService {
         );
     }
 
-
     @Override
     public ResponseEntity<?> GetPost(Long postId) {
-        return null;
+        Post post = postRepository.findById(postId).orElse(null);
+        if (post == null) {
+            return GenerateResponse.generateErrorResponse
+                    (404, "Post not found");
+        }
+        UUID userId = post.getUserId();
+        if (userId == null) {
+            return GenerateResponse.generateErrorResponse
+                    (401, "User Id can't be null");
+        }
+        UserInforResponse userDto = userClient.getUserById(userId);
+        PostDTO postDTO = GeneratePost.generatePostDTO(post, userDto);
+        return GenerateResponse.generateSuccessResponse(
+                200, "Get post successfully !", postDTO
+
+        );
     }
 
     @Override
