@@ -17,6 +17,7 @@ public class CommentDTO {
     private Long id;
     private String content;
     private String mediaUrl;
+
     private String mediaType;
     private LocalDateTime createdAt;
     private List<CommentDTO> replies = new ArrayList<>();

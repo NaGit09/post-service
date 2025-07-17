@@ -19,70 +19,52 @@ public class LikeServiceImp implements ILikeService {
     private LikeRepository likeRepository;
 
     @Override
-    public ResponseEntity<?> like(LikeRequest likeRequest) {
+    public Boolean like(LikeRequest likeRequest) {
         UUID userId = likeRequest.getUserId();
         Long targetId = likeRequest.getTargetId();
         String typeLike = likeRequest.getTargetType();
+
         if (targetId == null || userId == null) {
-            return GenerateResponse.generateErrorResponse(
-                    401, "target id or user id is null");
+            return false;
         }
 
         try {
-            TypeLike.valueOf(typeLike); // validate enum
+            TypeLike.valueOf(typeLike);
             Like like = GenerateLike.generateLike(userId, targetId, typeLike);
             likeRepository.save(like);
-            return GenerateResponse.generateSuccessResponse(
-                    200, "like successfully", like.getId());
+            return true;
         } catch (IllegalArgumentException e) {
-            return GenerateResponse.generateErrorResponse(
-                    401, "typeLike invalid");
+            return false;
         }
 
     }
 
-
     @Override
-    public ResponseEntity<?> unlike(UnlikeRequest unlikeRequest) {
+    public Boolean unlike(UnlikeRequest unlikeRequest) {
         UUID userId = unlikeRequest.getUserId();
         Long targetId = unlikeRequest.getTargetId();
         String typeLike = unlikeRequest.getTargetType();
         Long id = unlikeRequest.getId();
 
         if (targetId == null || userId == null) {
-            return GenerateResponse.generateErrorResponse(
-                    401, "target id or user id is null");
+            return false;
         }
 
         try {
             TypeLike.valueOf(typeLike); // validate enum
             Like like = likeRepository.findById(id).orElse(null);
             if (like == null) {
-                return GenerateResponse.generateErrorResponse(
-                        404, "target id not found"
-                );
+                return false;
             }
             likeRepository.delete(like);
-            return GenerateResponse.generateSuccessResponse(
-                    200, "unlike successfully", like.getId()
-            );
+            return true;
         } catch (IllegalArgumentException e) {
-            return GenerateResponse.generateErrorResponse(
-                    401, "typeLike invalid");
+            return false;
         }
     }
 
     @Override
-    public ResponseEntity<?> totalLikes(Long targetId, String typeLike) {
-        Integer totalLike = likeRepository.countLikesByTargetIdAndTargetType(targetId, typeLike);
-        if (totalLike == 0) {
-            return GenerateResponse.generateErrorResponse(
-                    404, "target id not found"
-            );
-        }
-
-        return GenerateResponse.generateSuccessResponse(
-                200, "total likes successfully", totalLike
-        );
+    public Integer totalLikes(Long targetId, String typeLike) {
+        return likeRepository.countLikesByTargetIdAndTargetType(targetId, typeLike);
     }
 }

@@ -7,8 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PostImageRepository extends JpaRepository<PostImage, Long> {
-
-    void deletePostImageByPost(Post post);
-
     void deleteAllByPost(Post post);
 }

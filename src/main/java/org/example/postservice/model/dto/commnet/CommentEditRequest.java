@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CommentEditRequest {
     private Long id;
-    private Long mediaId;
     private String content;
     private String mediaUrl;
+
+    private Long mediaId;
 }

@@ -1,6 +1,7 @@
 package org.example.postservice.utils;
 
 import org.example.postservice.model.dto.orther.UserInforResponse;
+import org.example.postservice.model.dto.post.EditPost;
 import org.example.postservice.model.dto.post.PostDTO;
 import org.example.postservice.model.dto.post.PostRequest;
 import org.example.postservice.model.entity.Post;
@@ -27,5 +28,16 @@ public class GeneratePost {
         p.setModes(post.getModes());
         p.setUserInfor(userInfor);
         return p;
+    }
+    public static Post generatePostUpdate (Post post , EditPost editPost) {
+
+        post.setContent(editPost.getContent());
+        post.setIsComment(editPost.getIsComment());
+        post.setIsLike(editPost.getIsLike());
+        post.setIsShare(editPost.getIsShare());
+        post.setModes(editPost.getMode());
+
+        return post;
+
     }
 }

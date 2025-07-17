@@ -5,7 +5,8 @@ import org.example.postservice.model.dto.ErrorResponse;
 import org.springframework.http.ResponseEntity;
 
 public class GenerateResponse {
-    public static ResponseEntity<?> generateSuccessResponse(Integer status, String message, Object data) {
+    public static ResponseEntity<?> generateSuccessResponse
+            (Integer status, String message, Object data) {
         return ResponseEntity.status(status).body(
                 new APIResponse<>(
                         status,
@@ -15,7 +16,8 @@ public class GenerateResponse {
         );
     }
 
-    public static ResponseEntity<?> generateErrorResponse(Integer status, String message) {
+    public static ResponseEntity<?> generateErrorResponse
+            (Integer status, String message) {
         return ResponseEntity.status(status).body(
                 new ErrorResponse(
                         status,

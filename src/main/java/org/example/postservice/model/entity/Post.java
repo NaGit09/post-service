@@ -48,11 +48,8 @@ public class Post {
     @Column
     private String modes = "PUBLIC";
 
-
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> images;
-
-
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp

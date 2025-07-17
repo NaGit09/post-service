@@ -6,11 +6,13 @@ import java.util.UUID;
 
 @Data
 public class CommentsRequest {
+    private String content;
+    private String mediaUrl;
+
     private Long mediaId;
     private Long postId;
     private UUID userId;
-    private String content;
-    private String mediaUrl;
+
     private String mediaType;
     private Long parentId;
 

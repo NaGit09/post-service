@@ -1,21 +1,23 @@
 package org.example.postservice.service;
 
 import org.example.postservice.model.dto.post.EditPost;
+import org.example.postservice.model.dto.post.PostDTO;
 import org.example.postservice.model.dto.post.PostRequest;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface IPostService {
-    ResponseEntity<?> CreatePost(PostRequest postRequest);
+    PostDTO CreatePost(PostRequest postRequest);
 
-    ResponseEntity<?> UpdatePost(EditPost editPost);
+    Boolean UpdatePost(EditPost editPost);
 
-    ResponseEntity<?> DeletePost(Long postId);
+    Boolean DeletePost(Long postId);
 
-    ResponseEntity<?> GetPost(Long postId);
+    PostDTO GetPost(Long postId);
 
-    ResponseEntity<?> ListPostRandom(Integer page, Integer pageSize);
+    List<PostDTO> ListPostRandom(Integer page, Integer pageSize);
 
-    ResponseEntity<?> ListPostsUser(UUID userId, Integer page, Integer pageSize);
+    List<PostDTO> ListPostsUser(UUID userId, Integer page, Integer pageSize);
 }

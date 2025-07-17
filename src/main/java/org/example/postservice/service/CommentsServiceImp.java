@@ -8,20 +8,17 @@ import org.example.postservice.model.dto.commnet.CommentsRequest;
 import org.example.postservice.model.entity.Comments;
 import org.example.postservice.model.repository.CommentsRepository;
 import org.example.postservice.utils.GenerateComments;
-import org.example.postservice.utils.GenerateResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -31,50 +28,43 @@ public class CommentsServiceImp implements ICommentsService {
     @Autowired
     private CommentsRepository commentsRepository;
 
-
-
     @Override
-    public ResponseEntity<?> CreateComment(CommentsRequest commentsRequest) {
+    public Long CreateComment(CommentsRequest commentsRequest) {
         Comments comments = GenerateComments.generateComments(commentsRequest);
         commentsRepository.save(comments);
-
-        return GenerateResponse.generateSuccessResponse(
-                200, "comment created !", comments.getId());
+        return  comments.getId();
     }
 
     @Override
-    public ResponseEntity<?> DeleteComment(Long commentId) {
+    public Boolean DeleteComment(Long commentId) {
         if (commentId == null) {
-            return GenerateResponse.generateErrorResponse(402, "comment id is null !");
+            return false;
         }
         Comments comments = commentsRepository.findById(commentId).orElse(null);
         if (comments == null) {
-            return GenerateResponse.generateErrorResponse(402, "comment  is not existed !");
+            return false;
         }
         commentsRepository.deleteById(commentId);
-        return GenerateResponse.generateSuccessResponse
-                (200, "comment deleted !", true);
+        return true;
     }
 
     @Override
-    public ResponseEntity<?> UpdateComment(CommentEditRequest commentsEditRequest) {
-        Optional<Comments> comments = commentsRepository.findById(commentsEditRequest.getId());
-        if (comments.isEmpty()) {
-            return GenerateResponse.generateErrorResponse(404, "comment not found !");
+    public Boolean UpdateComment(CommentEditRequest commentsEditRequest) {
+        Comments comment = commentsRepository.findById(commentsEditRequest.getId()).orElse(null);
+        if (comment == null ) {
+            return false;
         }
-        Comments newComment = GenerateComments.updateComment(comments.get(), commentsEditRequest);
+        Comments newComment = GenerateComments.updateComment(comment, commentsEditRequest);
         commentsRepository.save(newComment);
-        return GenerateResponse.generateSuccessResponse
-                (200, "comment updated !", true);
+        return true;
     }
 
     @Override
-    public ResponseEntity<?> getTopLevelComments(Long postId, int page, int size) {
+    public Page<CommentRoot> getTopLevelComments(Long postId, int page, int size) {
         // Kiểm tra nếu postId là null
         if (postId == null) {
-            return GenerateResponse.generateErrorResponse(402, "Post ID is null!");
+            return  null;
         }
-
         // Phân trang cho các comment gốc
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
@@ -88,21 +78,18 @@ public class CommentsServiceImp implements ICommentsService {
                 .collect(Collectors.toList());
 
         // Trả về kết quả phân trang
-        return GenerateResponse.generateSuccessResponse(
-                200, "Get top-level comments successfully!",
-                new PageImpl<>(commentDTOs, pageable, topLevelComments.getTotalElements())
-        );
+        return  new PageImpl<>(commentDTOs, pageable, topLevelComments.getTotalElements());
     }
 
 
     @Override
-    public ResponseEntity<?> getRepliesComments(Long commentId, int page, int size) {
+    public Page<CommentDTO> getRepliesComments(Long commentId, int page, int size) {
         // Lấy comment gốc từ repository
         Comments comments = commentsRepository.findById(commentId).orElse(null);
 
         // Kiểm tra nếu comment không tồn tại
         if (comments == null) {
-            return GenerateResponse.generateErrorResponse(404, "Comment not found!");
+            return null;
         }
 
         // Phân trang
@@ -122,47 +109,35 @@ public class CommentsServiceImp implements ICommentsService {
                 .collect(Collectors.toList());
 
         // Trả về kết quả
-        return GenerateResponse.generateSuccessResponse(
-                200, "Get replies comments successfully!",
-                new PageImpl<>(result, pageable, repliesComments.getTotalElements())
-        );
+        return new PageImpl<>(result, pageable, repliesComments.getTotalElements());
     }
 
     @Override
-    public ResponseEntity<?> TotalCommentsInPost(Long postId) {
+    public Integer TotalCommentsInPost(Long postId) {
         if (postId == null) {
-            return GenerateResponse.generateErrorResponse(402, "post id is null !");
+            return -1;
         }
         Integer totalComments = commentsRepository.countByPostId(postId);
-        if (totalComments == 0) return GenerateResponse.generateErrorResponse
-                (404, "comment not found !");
+        if (totalComments == 0) return -1;
 
-        return GenerateResponse.generateSuccessResponse(
-                200, "get totalComments successfully !", totalComments
-        );
+        return totalComments;
 
     }
 
     @Override
-    public ResponseEntity<?> TotalCommentReplies(Long commentId) {
+    public Integer TotalCommentReplies(Long commentId) {
         if (commentId == null) {
-            return GenerateResponse.generateErrorResponse
-                    (402, "comment id is null !");
+            return -1;
         }
 
         Comments comments = commentsRepository.findById(commentId).orElse(null);
 
         if (comments == null) {
-            return GenerateResponse.generateErrorResponse
-                    (404, "comment not found !");
+            return -1;
         }
         Long parentComment = comments.getParentCommentId() == null
                 ? comments.getId() : comments.getParentCommentId();
 
-        Integer totalReplies = commentsRepository.countByParentCommentId(parentComment);
-
-        return GenerateResponse.generateSuccessResponse(
-                200, "get totalReplies successfully !", totalReplies
-        );
+        return commentsRepository.countByParentCommentId(parentComment);
     }
 }

@@ -15,13 +15,10 @@ import org.example.postservice.model.repository.PostImageRepository;
 import org.example.postservice.model.repository.PostRepository;
 
 import org.example.postservice.utils.GeneratePost;
-import org.example.postservice.utils.GenerateResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -35,30 +32,10 @@ public class PostServiceImp implements IPostService {
     public UserClient userClient;
 
     @Override
-    public ResponseEntity<?> CreatePost(PostRequest postRequest) {
-//        destructuring
-        UUID userId = postRequest.getUserId();
-        String content = postRequest.getContent();
-        String modes = postRequest.getModes();
-        Boolean isComment = postRequest.getIsComment();
-        Boolean isShare = postRequest.getIsShare();
-        Boolean isSaved = postRequest.getIsSaved();
-        Boolean isLiked = postRequest.getIsLiked();
+    public PostDTO CreatePost(PostRequest postRequest) {
+        Post post = GeneratePost.generatePost(postRequest);
         List<PostImageRequest> postImages = postRequest.getPostRequestImages();
 
-        if (userId == null) {
-            return GenerateResponse.generateErrorResponse(
-                    401, "User Id can't be null");
-        }
-        Post post = postRepository.save(Post.builder()
-                .userId(userId)
-                .content(content)
-                .isComment(isComment)
-                .isShare(isShare)
-                .isSaved(isSaved)
-                .modes(modes)
-                .isLike(isLiked)
-                .build());
 
         if (postImages != null && !postImages.isEmpty()) {
             List<PostImage> images = postImages.stream()
@@ -69,37 +46,26 @@ public class PostServiceImp implements IPostService {
                             .build())
                     .toList();
 
+            postRepository.save(post);
             postImageRepository.saveAll(images);
         }
 
-        Optional<Post> postReturn = postRepository.findById(post.getId());
-        if (postReturn.isEmpty()) {
-            return GenerateResponse.generateErrorResponse(401, "Post not found");
+        Post postReturn = postRepository.findById(post.getId()).orElse(null);
+        if (postReturn == null) {
+            return null;
         }
-        return GenerateResponse.generateSuccessResponse(
-                200, "create post successfully !", postReturn.get());
+        return GeneratePost.generatePostDTO(postReturn, null);
     }
 
     @Override
-    public ResponseEntity<?> UpdatePost(EditPost editPost) {
+    public Boolean UpdatePost(EditPost editPost) {
         Long postId = editPost.getPostId();
-        Optional<Post> optionalPost = postRepository.findById(postId);
-
-        if (optionalPost.isEmpty()) {
-            return GenerateResponse.generateErrorResponse(404, "Post not found");
+        Post post = postRepository.findById(postId).orElse(null);
+        if (post == null) {
+            return false;
         }
 
-        Post post = optionalPost.get();
 
-        // Cập nhật các trường cơ bản
-        post.setContent(editPost.getContent());
-        post.setIsComment(editPost.getIsComment());
-        post.setIsLike(editPost.getIsLike());
-        post.setIsShare(editPost.getIsShare());
-        post.setModes(editPost.getMode());
-
-
-        // Cập nhật lại ảnh: xóa hết ảnh cũ
         postImageRepository.deleteAllByPost(post);
 
         List<PostImageRequest> imageRequests = editPost.getPostImageList();
@@ -114,19 +80,17 @@ public class PostServiceImp implements IPostService {
             postImageRepository.saveAll(newImages);
         }
 
-        postRepository.save(post);
+        postRepository.save(GeneratePost.generatePostUpdate(post, editPost));
 
-        return GenerateResponse.generateSuccessResponse(
-                200, "Update post successfully!", post
-        );
+        return true;
     }
 
     @Override
     @Transactional
-    public ResponseEntity<?> DeletePost(Long postId) {
+    public Boolean DeletePost(Long postId) {
         Post post = postRepository.findById(postId).orElse(null);
         if (post == null) {
-            return GenerateResponse.generateErrorResponse(404, "Post not found");
+            return false;
         }
 
         postImageRepository.deleteAllByPost(post);
@@ -134,38 +98,31 @@ public class PostServiceImp implements IPostService {
 
         postRepository.delete(post);
 
-        return GenerateResponse.generateSuccessResponse(
-                200, "Delete post successfully", true
-        );
+        return true;
     }
 
     @Override
-    public ResponseEntity<?> GetPost(Long postId) {
+    public PostDTO GetPost(Long postId) {
         Post post = postRepository.findById(postId).orElse(null);
         if (post == null) {
-            return GenerateResponse.generateErrorResponse
-                    (404, "Post not found");
+            return null;
         }
         UUID userId = post.getUserId();
         if (userId == null) {
-            return GenerateResponse.generateErrorResponse
-                    (401, "User Id can't be null");
+            return null;
         }
         UserInforResponse userDto = userClient.getUserById(userId);
-        PostDTO postDTO = GeneratePost.generatePostDTO(post, userDto);
-        return GenerateResponse.generateSuccessResponse(
-                200, "Get post successfully !", postDTO
+        return GeneratePost.generatePostDTO(post, userDto);
 
-        );
     }
 
     @Override
-    public ResponseEntity<?> ListPostRandom(Integer page, Integer pageSize) {
+    public List<PostDTO> ListPostRandom(Integer page, Integer pageSize) {
         return null;
     }
 
     @Override
-    public ResponseEntity<?> ListPostsUser(UUID userId, Integer page, Integer pageSize) {
+    public List<PostDTO> ListPostsUser(UUID userId, Integer page, Integer pageSize) {
         return null;
     }
 
