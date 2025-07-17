@@ -3,6 +3,7 @@ package org.example.postservice.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.postservice.config.UserClient;
+import org.example.postservice.model.dto.APIResponse;
 import org.example.postservice.model.dto.orther.UserInforResponse;
 import org.example.postservice.model.dto.post.EditPost;
 import org.example.postservice.model.dto.post.PostDTO;
@@ -28,6 +29,7 @@ public class PostServiceImp implements IPostService {
     public final PostRepository postRepository;
     @Autowired
     public PostImageRepository postImageRepository;
+
     @Autowired
     public UserClient userClient;
 
@@ -46,10 +48,10 @@ public class PostServiceImp implements IPostService {
                             .build())
                     .toList();
 
-            postRepository.save(post);
+
             postImageRepository.saveAll(images);
         }
-
+        postRepository.save(post);
         Post postReturn = postRepository.findById(post.getId()).orElse(null);
         if (postReturn == null) {
             return null;
@@ -111,8 +113,8 @@ public class PostServiceImp implements IPostService {
         if (userId == null) {
             return null;
         }
-        UserInforResponse userDto = userClient.getUserById(userId);
-        return GeneratePost.generatePostDTO(post, userDto);
+        APIResponse<UserInforResponse> userDto = userClient.getUserById(userId);
+        return GeneratePost.generatePostDTO(post, userDto.getData());
 
     }
 

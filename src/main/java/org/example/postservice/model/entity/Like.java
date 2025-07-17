@@ -15,7 +15,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "likes", indexes = {
-        @Index(name = "post_id_idx", columnList = "post_id"),
         @Index(name = "user_id_idx", columnList = "user_id")
 })
 public class Like {
@@ -23,7 +22,6 @@ public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
 
     @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID userId;
